@@ -340,8 +340,6 @@ public class EvaluationService {
 		public int indexOf(T t) {
 			// TODO Write an implementation for this method declaration
 			int middleIndex = sortedList.size()/2;
-			int foundPosition;
-			boolean found = false;
 			
 			for(int i = middleIndex; i >= 0; i--) {
 				if(t.equals(sortedList.get(i))){
@@ -549,15 +547,20 @@ public class EvaluationService {
 			
 			for(int i = 0; i < string.length(); i++) {
 				char letter = string.charAt(i);
-				
-				if (Character.isUpperCase(letter)) 
-	            { 
-	               sb.append((char)(((int)letter + key - 65) % 26 + 65)); 
-	            } 
-	            else
-	            { 
-	                sb.append((char)(((int)letter + key - 97) % 26 + 97)); 
-	            } 
+				if(!Character.isLetter(letter)) {
+					sb.append(letter);
+				}
+				else 
+					{
+					if (Character.isUpperCase(letter)) 
+						{ 
+							sb.append((char)(((int)letter + key - 65) % 26 + 65)); 
+						} 
+						else
+						{ 
+							sb.append((char)(((int)letter + key - 97) % 26 + 97)); 
+						} 
+					}
 				
 			}
 			return sb.toString();
