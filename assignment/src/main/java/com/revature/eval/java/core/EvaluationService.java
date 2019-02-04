@@ -1,5 +1,8 @@
 package com.revature.eval.java.core;
 
+import java.time.DateTimeException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class EvaluationService {
 
@@ -36,7 +40,7 @@ public class EvaluationService {
 	public String acronym(String phrase) {
 		// TODO Write an implementation for this method declaration
 		StringBuilder sb = new StringBuilder();
-		String[] words = phrase.split(" ");
+		String[] words = phrase.split("[ -]");
 		
 		for(int i = 0; i < words.length; i++) {
 			sb.append(words[i].charAt(0));
@@ -260,10 +264,27 @@ public class EvaluationService {
 	 */
 	public String cleanPhoneNumber(String string) {
 		// TODO Write an implementation for this method declaration
+		String[] cleanedNumber = string.replaceAll("[ +()-._]", "").split("");
+		StringBuilder sb = new StringBuilder();
 		
-		String[] cleanedNumber = string.split("+1|1|(1)|" + "-| |(|)|\\.");
+		for(int i = 0; i < cleanedNumber.length; i++ ) {
+			sb.append(cleanedNumber[i]);
+		}
 		
-		return cleanedNumber.toString();
+		String[] checkString = sb.toString().split("");
+		
+		for(int i = 0; i < checkString.length; i++) {
+			if(Pattern.matches("[a-zA-Z!@#$%^&*:;\"\'?><,]", checkString[i]))
+			throw new IllegalArgumentException("Invalid character(s) in number.");
+		}
+		
+		if(cleanedNumber.length > 11) {
+			throw  new IllegalArgumentException("Number format is invalid");
+		}
+		return sb.toString();
+		
+		
+		
 	}
 
 	/**
@@ -279,25 +300,23 @@ public class EvaluationService {
 		// TODO Write an implementation for this method declaration
 		
 		Map<String, Integer> wordCounts = new HashMap<String,Integer>();
+		string = string.replace(",\n", " ");
 		
-		String[] words = string.split(" ");
-		Set<String> allWords = new HashSet<String>();
+		Map<String, Integer> allWords = new HashMap<>();
+		String[] words = string.split("[ ,]");
 		
 		for(String word : words) {
-			if(allWords.contains(word)) {
-				int temp = wordCounts.get(word);
-				temp++;
-				wordCounts.put(word,temp);
+				Integer temp = wordCounts.get(word);
+				if(temp == null) {
+					temp = 0;
+				}
+				wordCounts.put(word,temp + 1);
 				
 			}
-			else {
-				wordCounts.put(word, 1);
-				allWords.add(word);
-			}
-		}
-		
+				
 		return wordCounts;
 	}
+
 
 	/**
 	 * 7. Implement a binary search algorithm.
@@ -457,23 +476,24 @@ public class EvaluationService {
 	public boolean isArmstrongNumber(int input) {
 		// TODO Write an implementation for this method declaration
 		
-		int number= input;
-		int originalNumber = number;
+		int number = input;
 		int remainder = 0; 
 		int result = 0; 
 		int digits = 0;
 		
-		for (;originalNumber != 0; originalNumber /= 10) {
-		     digits++;
+		while(number != 0) {
+			digits++;
+			number /= 10;
 		}
 		
-        for (;originalNumber != 0; originalNumber /= 10)
-        {
-            remainder = originalNumber % 10;
-            result += Math.pow(remainder, digits);
-        }
-        
-        if(result == number) {
+		number = input;
+		while(number != 0) {
+			remainder = number % 10;
+			result += Math.pow(remainder, digits);
+			number = number /10;
+		}
+		
+        if(input == result) {
         	return true;
         }
         else
@@ -494,9 +514,10 @@ public class EvaluationService {
 		// TODO Write an implementation for this method declaration
 		List<Long> factors = new ArrayList<Long>();
 		
-		for(int i = 0; i < (int)l; i++) {
-			if(i % i == 0 && i % 1 == 0 && i != 1) {
+		for(int i = 2; i <= l; i++) {
+			while(l % i == 0) {
 				factors.add((long)i);
+				l /= i;
 			}
 		}
 		
@@ -721,27 +742,33 @@ public class EvaluationService {
 	public boolean isValidIsbn(String string) {
 		// TODO Write an implementation for this method declaration
 	
-		String[] idNumbersString = string.split("-");
-		int[] idNumbers = new int[idNumbersString.length];
+		string = string.replace("-", "");
 		
-		for(int i = 0; i < idNumbersString.length; i++) {
-			idNumbers[i] = Integer.parseInt(idNumbersString[i]);
+		String[] idNumbers = string.split("");
+		int sum = 0;
+		
+		for(int i = 0; i < idNumbers.length; i++) {
+			if(Pattern.matches("[ABCDEFGHIJKLMONPQRSTUVWYZ]", idNumbers[i])) {
+				return false;
+			}
 		}
 		
-		int value = 0;
-		int digit = 10;
-		for(int num : idNumbers) {
-			value += num * digit;
-			digit--;
+		if(idNumbers[9].equals("X")) {
+			idNumbers[9] = "10";
 		}
 		
-		if(value % 11 == 0)
-		{
-			return true;
+		if(idNumbers.length > 10) {
+			return false;
 		}
-		else {
+		
+		for(int i = 0, j = 10; i < idNumbers.length; i++, j--) {
+			sum += Integer.parseInt(idNumbers[i]) * j;
+			if(sum % 11 == 0) {
+				return true;
+			}
+		}
+		
 		return false;
-		}
 	}
 
 	/**
@@ -799,10 +826,24 @@ public class EvaluationService {
 	 */
 	public Temporal getGigasecondDate(Temporal given) {
 		// TODO Write an implementation for this method declaration
+
+		LocalDate birth;
+		LocalDateTime start;
+		LocalDateTime end;
 		
+		int seconds = 1000000000;
 		
+		try {
+			birth = LocalDate.from(given);
+			start = birth.atStartOfDay();
+			end = start.plusSeconds(seconds);
+			
+		} catch(DateTimeException e) {
+			start = LocalDateTime.from(given);
+			end = start.plusSeconds(seconds);
+		}
 		
-		return null;
+		return end;
 	}
 
 	/**
