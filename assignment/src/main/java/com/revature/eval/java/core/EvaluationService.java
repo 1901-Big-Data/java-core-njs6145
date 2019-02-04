@@ -415,7 +415,6 @@ public class EvaluationService {
 		
 		for(int i = 0; i < words.length;i++) {
 			
-			String newString;
 			sb.setLength(0);
 			
 			char firstLetter = words[i].charAt(0);
@@ -923,18 +922,22 @@ public class EvaluationService {
 		String[] newString = tempString.split("");
 		
 		int stringLength = newString.length;
-		System.out.print(stringLength);
 		int[] nums = new int[stringLength];
 		
 		for(int i = 0; i < stringLength; i++) {
+			
+			if(Pattern.matches("[a-zA-Z-_,.]", newString[i])) {
+				return false;
+			}
+			
 		try {
 			nums[i] = Integer.parseInt(newString[i]);
 		}
 		catch(NumberFormatException e) {
 			throw new NumberFormatException("Parsed a non-integer");
+			}
 		}
-		}
-		
+		/*
 		for(int i = nums.length - 1; i > 0; i -= 2) {
 			nums[i] *= 2;
 			if(nums[i] > 9) {
@@ -945,6 +948,19 @@ public class EvaluationService {
 		int sum = 0;
 		for(int i = 0; i < nums.length;i++) {
 			sum += nums[i];
+		}
+		*/
+		
+		int digit = 0;
+		int sum = 0;
+		for(int i = 0; i < stringLength; i++) {
+			digit = nums[stringLength - i - 1];
+			if(i % 2 == 1) {
+				digit *= 2;
+			}
+			
+			sum += digit > 9 ? digit - 9 : digit;
+			
 		}
 		
 		if(sum %10 == 0) {
